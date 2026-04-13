@@ -20,7 +20,8 @@
       "Bash(vercel *)",
       "Bash(do *)",
       "Bash(done)",
-      "Bash(python3 *)"
+      "Bash(python3 *)",
+      "Bash(mv *)"
     ]
   },
   "$version": 3
