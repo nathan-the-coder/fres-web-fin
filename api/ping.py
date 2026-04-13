@@ -9,7 +9,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from base import success_response, cors_preflight
 
 
-def main(event, context):
+def handler(event, context):
     """Health check endpoint."""
     if event.get("httpMethod") == "OPTIONS":
         return cors_preflight(event)

@@ -74,7 +74,7 @@ def register(event):
     return success_response({"message": "Registered successfully!"}, 201)
 
 
-def main(event, context):
+def handler(event, context):
     """Main entry point for Vercel serverless function."""
     # Handle CORS preflight
     if event.get("httpMethod") == "OPTIONS":
