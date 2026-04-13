@@ -1,24 +1,14 @@
 """
 FRES Admin Endpoint - Vercel Serverless Function
-/api/admin/stats
-/api/admin/users
-/api/admin/users/<id>/status
-/api/admin/suggestions
-/api/admin/suggestions/<id>/reply
-/api/admin/announcements
 """
-import re
-import sys
 import os
+import sys
+import re
 
-# Add api directory to path for imports
-_api_dir = os.path.dirname(os.path.abspath(__file__))
-if _api_dir not in sys.path:
-    sys.path.insert(0, _api_dir)
+sys.path.insert(0, os.path.dirname(__file__))
 
 from base import get_db, parse_body, success_response, error_response, cors_preflight
 
-# Handler function for Vercel
 def handler(event, context):
     """Main entry point for Vercel serverless function."""
     # Handle CORS preflight

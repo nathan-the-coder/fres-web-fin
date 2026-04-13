@@ -1,17 +1,12 @@
 """
 FRES AI Endpoint - Vercel Serverless Function
-/api/ai/generate
-/api/ai/logs
 """
 import os
-import re
 import sys
+import re
 import logging
 
-# Add api directory to path for imports
-_api_dir = os.path.dirname(os.path.abspath(__file__))
-if _api_dir not in sys.path:
-    sys.path.insert(0, _api_dir)
+sys.path.insert(0, os.path.dirname(__file__))
 
 from openai import OpenAI
 
