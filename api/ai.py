@@ -7,8 +7,11 @@ import os
 import re
 import sys
 import logging
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+
+# Add api directory to path for imports
+_api_dir = os.path.dirname(os.path.abspath(__file__))
+if _api_dir not in sys.path:
+    sys.path.insert(0, _api_dir)
 
 from openai import OpenAI
 

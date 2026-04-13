@@ -9,10 +9,49 @@ FRES Admin Endpoint - Vercel Serverless Function
 """
 import re
 import sys
-from pathlib import Path
-sys.path.insert(0, str(Path(__file__).parent))
+import os
+
+# Add api directory to path for imports
+_api_dir = os.path.dirname(os.path.abspath(__file__))
+if _api_dir not in sys.path:
+    sys.path.insert(0, _api_dir)
 
 from base import get_db, parse_body, success_response, error_response, cors_preflight
+
+# Handler function for Vercel
+def handler(event, context):
+    """Main entry point for Vercel serverless function."""
+    # Handle CORS preflight
+    if event.get("httpMethod") == "OPTIONS":
+        return cors_preflight(event)
+
+    # Route to appropriate handler based on path and method
+    path = event.get("path", "")
+    method = event.get("httpMethod", "GET")
+
+    # Stats endpoint
+    if "stats" in path and method == "GET":
+        return stats(event)
+
+    # Users endpoints
+    if path.rstrip("/").endswith("/users") and method == "GET":
+        return get_users(event)
+    if re.search(r"/api/admin/users/\d+/status", path) and method == "PUT":
+        return update_user_status(event)
+
+    # Suggestions endpoints
+    if "suggestions" in path and method == "GET":
+        return get_suggestions(event)
+    if re.search(r"/api/admin/suggestions/\d+/reply", path) and method == "POST":
+        return reply_suggestion(event)
+
+    # Announcements endpoints
+    if "announcements" in path and method == "GET":
+        return get_announcements(event)
+    if "announcements" in path and method == "POST":
+        return post_announcement(event)
+
+    return error_response("Unknown admin endpoint", 404)
 
 
 def stats(event):
@@ -131,38 +170,3 @@ def post_announcement(event):
     db.close()
 
     return success_response({})
-
-
-def handler(event, context):
-    """Main entry point for Vercel serverless function."""
-    # Handle CORS preflight
-    if event.get("httpMethod") == "OPTIONS":
-        return cors_preflight(event)
-
-    # Route to appropriate handler based on path and method
-    path = event.get("path", "")
-    method = event.get("httpMethod", "GET")
-
-    # Stats endpoint
-    if "stats" in path and method == "GET":
-        return stats(event)
-
-    # Users endpoints
-    if path.rstrip("/").endswith("/users") and method == "GET":
-        return get_users(event)
-    if re.search(r"/api/admin/users/\d+/status", path) and method == "PUT":
-        return update_user_status(event)
-
-    # Suggestions endpoints
-    if "suggestions" in path and method == "GET":
-        return get_suggestions(event)
-    if re.search(r"/api/admin/suggestions/\d+/reply", path) and method == "POST":
-        return reply_suggestion(event)
-
-    # Announcements endpoints
-    if "announcements" in path and method == "GET":
-        return get_announcements(event)
-    if "announcements" in path and method == "POST":
-        return post_announcement(event)
-
-    return error_response("Unknown admin endpoint", 404)
