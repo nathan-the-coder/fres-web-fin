@@ -21,7 +21,8 @@
       "Bash(do *)",
       "Bash(done)",
       "Bash(python3 *)",
-      "Bash(mv *)"
+      "Bash(mv *)",
+      "Bash(curl *)"
     ]
   },
   "$version": 3

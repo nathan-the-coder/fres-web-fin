@@ -300,6 +300,61 @@ def handle_admin_announcements_post(event):
     db.close()
     return success_response({})
 
+def handle_init_db(event):
+    """Initialize database with tables and seed data."""
+    try:
+        db = get_db()
+        cur = db.cursor()
+        
+        cur.executescript("""
+            CREATE TABLE IF NOT EXISTS users (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT NOT NULL UNIQUE,
+                password TEXT NOT NULL,
+                role TEXT NOT NULL DEFAULT 'user',
+                status TEXT NOT NULL DEFAULT 'active',
+                registered_at TEXT DEFAULT (datetime('now'))
+            );
+            
+            CREATE TABLE IF NOT EXISTS chat_logs (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                user_id INTEGER,
+                prompt TEXT NOT NULL,
+                response TEXT,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+            
+            CREATE TABLE IF NOT EXISTS suggestions (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                username TEXT DEFAULT 'Anonymous',
+                text TEXT NOT NULL,
+                reply TEXT,
+                timestamp TEXT DEFAULT (datetime('now'))
+            );
+            
+            CREATE TABLE IF NOT EXISTS announcements (
+                id INTEGER PRIMARY KEY AUTOINCREMENT,
+                message TEXT NOT NULL,
+                created_at TEXT DEFAULT (datetime('now'))
+            );
+        """)
+        
+        # Seed default admin if none exists
+        existing = cur.execute("SELECT id FROM users WHERE role='admin' LIMIT 1").fetchone()
+        if not existing:
+            db.execute(
+                "INSERT INTO users (username, password, role, status) VALUES (?, ?, 'admin', 'active')",
+                ("admin", hash_pw("admin123"))
+            )
+            db.commit()
+            db.close()
+            return success_response({"message": "Database initialized with default admin (admin/admin123)"})
+        
+        db.close()
+        return success_response({"message": "Database already initialized"})
+    except Exception as e:
+        return error_response(f"Database init failed: {str(e)}", 500)
+
 # ============================================================
 # Main Handler (Required by Vercel)
 # ============================================================
@@ -329,6 +384,8 @@ def handler(event, context):
         return handle_ai_logs(event)
     
     # Admin
+    if "init_db" in path or "init-db" in path:
+        return handle_init_db(event)
     if "stats" in path and method == "GET":
         return handle_admin_stats(event)
     if path.rstrip("/").endswith("/users") and method == "GET":
