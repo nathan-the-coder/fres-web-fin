@@ -12,7 +12,15 @@
       "Bash(.venv/bin/python *)",
       "Bash(tree *)",
       "Bash(npm *)",
-      "Bash(git add *)"
+      "Bash(git add *)",
+      "Bash(git reset *)",
+      "Bash(echo *)",
+      "Bash(git rm *)",
+      "Bash(git commit *)",
+      "Bash(vercel *)",
+      "Bash(do *)",
+      "Bash(done)",
+      "Bash(python3 *)"
     ]
   },
   "$version": 3

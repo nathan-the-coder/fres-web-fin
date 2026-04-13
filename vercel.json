@@ -2,7 +2,7 @@
   "version": 2,
   "builds": [
     {
-      "src": "api/*.py",
+      "src": "api/index.py",
       "use": "@vercel/python"
     },
     {
@@ -12,36 +12,8 @@
   ],
   "routes": [
     {
-      "src": "/api/ping",
-      "dest": "/api/ping.py"
-    },
-    {
-      "src": "/api/users/(.*)",
-      "dest": "/api/users.py"
-    },
-    {
-      "src": "/api/users",
-      "dest": "/api/users.py"
-    },
-    {
-      "src": "/api/ai/(.*)",
-      "dest": "/api/ai.py"
-    },
-    {
-      "src": "/api/ai",
-      "dest": "/api/ai.py"
-    },
-    {
-      "src": "/api/admin/(.*)",
-      "dest": "/api/admin.py"
-    },
-    {
-      "src": "/api/admin",
-      "dest": "/api/admin.py"
-    },
-    {
-      "src": "/api/init_db",
-      "dest": "/api/init_db.py"
+      "src": "/api/(.*)",
+      "dest": "/api/index.py"
     },
     {
       "src": "/(.*)",
