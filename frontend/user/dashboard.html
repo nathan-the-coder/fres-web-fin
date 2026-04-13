@@ -1,0 +1,959 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>User Portal — FRES Web</title>
+    <script src="https://cdn.tailwindcss.com"></script>
+    <link rel="stylesheet" href="https://cdnjs.cloudflare.com/ajax/libs/font-awesome/6.5.0/css/all.min.css">
+    <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;600;700;800;900&display=swap"
+        rel="stylesheet">
+    <link rel="stylesheet" href="../css/themes.css">
+    <style>
+        :root {
+            --accent: #e91e63;
+            --accent2: #7b1fa2;
+            --bg: #0d091e;
+            --surface: rgba(255, 255, 255, 0.04);
+            --border: rgba(255, 255, 255, 0.07);
+            --text: #ffffff;
+            --muted: #6b7280;
+        }
+
+        * {
+            box-sizing: border-box;
+            margin: 0;
+            padding: 0;
+        }
+
+        body {
+            font-family: 'Poppins', sans-serif;
+            background: var(--bg);
+            color: var(--text);
+            height: 100vh;
+            overflow: hidden;
+            display: flex;
+            flex-direction: column;
+        }
+
+        /* ── Ambient background orbs ── */
+        body::before,
+        body::after {
+            content: '';
+            position: fixed;
+            border-radius: 50%;
+            filter: blur(120px);
+            pointer-events: none;
+            z-index: 0;
+        }
+
+        body::before {
+            width: 600px;
+            height: 600px;
+            background: radial-gradient(circle, rgba(233, 30, 99, 0.12), transparent 70%);
+            top: -100px;
+            left: -100px;
+        }
+
+        body::after {
+            width: 500px;
+            height: 500px;
+            background: radial-gradient(circle, rgba(123, 31, 162, 0.12), transparent 70%);
+            bottom: -100px;
+            right: -100px;
+        }
+
+        /* ── Layout ── */
+        header {
+            position: relative;
+            z-index: 50;
+            display: flex;
+            align-items: center;
+            justify-content: space-between;
+            padding: 12px 24px;
+            background: rgba(0, 0, 0, 0.5);
+            backdrop-filter: blur(20px);
+            border-bottom: 1px solid var(--border);
+            flex-shrink: 0;
+        }
+
+        .dashboard-container {
+            flex: 1;
+            display: flex;
+            overflow: hidden;
+            position: relative;
+            z-index: 1;
+        }
+
+        /* ── Sidebar ── */
+        .sidebar {
+            width: 260px;
+            flex-shrink: 0;
+            background: rgba(0, 0, 0, 0.35);
+            border-right: 1px solid var(--border);
+            padding: 20px 16px;
+            display: flex;
+            flex-direction: column;
+            gap: 6px;
+            overflow-y: auto;
+        }
+
+        .sidebar-label {
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            padding: 6px 12px 4px;
+        }
+
+        .nav-btn {
+            display: flex;
+            align-items: center;
+            gap: 14px;
+            padding: 13px 16px;
+            border-radius: 14px;
+            border: none;
+            background: transparent;
+            color: #9ca3af;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1px;
+            cursor: pointer;
+            transition: all 0.2s ease;
+            width: 100%;
+            text-align: left;
+        }
+
+        .nav-btn:hover {
+            background: var(--surface);
+            color: white;
+        }
+
+        .nav-btn.active {
+            background: rgba(233, 30, 99, 0.15);
+            color: white;
+            border-left: 3px solid var(--accent);
+        }
+
+        .nav-btn .icon-wrap {
+            width: 32px;
+            height: 32px;
+            border-radius: 10px;
+            display: flex;
+            align-items: center;
+            justify-content: center;
+            background: var(--surface);
+            flex-shrink: 0;
+            font-size: 13px;
+        }
+
+        /* ── Main content ── */
+        .main-content {
+            flex: 1;
+            overflow-y: auto;
+            padding: 36px 40px;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+        }
+
+        .view {
+            animation: fadeUp 0.25s ease;
+        }
+
+        @keyframes fadeUp {
+            from {
+                opacity: 0;
+                transform: translateY(8px);
+            }
+
+            to {
+                opacity: 1;
+                transform: translateY(0);
+            }
+        }
+
+        /* ── Generator ── */
+        .section-title {
+            font-size: 28px;
+            font-weight: 900;
+            font-style: italic;
+            letter-spacing: -1px;
+        }
+
+        .section-sub {
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 3px;
+            color: var(--accent);
+            margin-top: 2px;
+        }
+
+        textarea.lesson-input {
+            width: 100%;
+            height: 220px;
+            resize: none;
+            background: rgba(0, 0, 0, 0.5);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 20px 24px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 13px;
+            line-height: 1.7;
+            outline: none;
+            transition: border 0.2s, box-shadow 0.2s;
+        }
+
+        textarea.lesson-input:focus {
+            border-color: var(--accent);
+            box-shadow: 0 0 0 3px rgba(233, 30, 99, 0.15);
+        }
+
+        textarea.lesson-input::placeholder {
+            color: #4b5563;
+        }
+
+        select.fres-select,
+        input.fres-input {
+            width: 100%;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 14px 16px;
+            color: white;
+            font-family: 'Poppins', sans-serif;
+            font-size: 11px;
+            font-weight: 700;
+            outline: none;
+            transition: border 0.2s;
+        }
+
+        select.fres-select:focus,
+        input.fres-input:focus {
+            border-color: var(--accent);
+        }
+
+        select.fres-select option {
+            background: #1a103a;
+        }
+
+        /* ── Generate Button ── */
+        #generateBtn {
+            width: 100%;
+            padding: 16px;
+            background: linear-gradient(135deg, #e91e63, #c2185b);
+            border: none;
+            border-radius: 14px;
+            font-family: 'Poppins', sans-serif;
+            font-weight: 900;
+            font-size: 11px;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            color: white;
+            cursor: pointer;
+            box-shadow: 0 8px 24px rgba(233, 30, 99, 0.3);
+            transition: all 0.2s;
+            position: relative;
+            overflow: hidden;
+        }
+
+        #generateBtn:hover:not(:disabled) {
+            transform: scale(1.02);
+            box-shadow: 0 12px 32px rgba(233, 30, 99, 0.4);
+        }
+
+        #generateBtn:disabled {
+            opacity: 0.6;
+            cursor: not-allowed;
+            transform: none;
+        }
+
+        #generateBtn .shimmer {
+            position: absolute;
+            inset: 0;
+            background: linear-gradient(90deg, transparent 0%, rgba(255, 255, 255, 0.15) 50%, transparent 100%);
+            transform: translateX(-100%);
+        }
+
+        #generateBtn.loading .shimmer {
+            animation: shimmerPass 1.2s infinite;
+        }
+
+        @keyframes shimmerPass {
+            to {
+                transform: translateX(300%);
+            }
+        }
+
+        /* ── Result panels ── */
+        .result-panel {
+            background: rgba(0, 0, 0, 0.45);
+            border: 1px solid var(--border);
+            border-radius: 18px;
+            padding: 22px 24px;
+            height: 380px;
+            overflow-y: auto;
+            font-size: 12.5px;
+            line-height: 1.9;
+            white-space: pre-wrap;
+            font-family: 'Poppins', sans-serif;
+            color: #d1d5db;
+            scrollbar-width: thin;
+            scrollbar-color: rgba(255, 255, 255, 0.1) transparent;
+            transition: border 0.2s;
+        }
+
+        .result-panel.has-content {
+            color: #e5e7eb;
+            border-color: rgba(255, 255, 255, 0.12);
+        }
+
+        .result-panel .placeholder-text {
+            color: #374151;
+            font-style: italic;
+            font-size: 12px;
+        }
+
+        /* ── Progress indicator ── */
+        #generatorStatus {
+            display: none;
+            align-items: center;
+            gap: 12px;
+            padding: 14px 20px;
+            border-radius: 12px;
+            background: rgba(233, 30, 99, 0.08);
+            border: 1px solid rgba(233, 30, 99, 0.2);
+            font-size: 11px;
+            font-weight: 700;
+            color: #f9a8d4;
+        }
+
+        .pulse-dot {
+            width: 8px;
+            height: 8px;
+            border-radius: 50%;
+            background: var(--accent);
+            animation: pulse 1s infinite;
+        }
+
+        @keyframes pulse {
+
+            0%,
+            100% {
+                opacity: 1;
+                transform: scale(1);
+            }
+
+            50% {
+                opacity: 0.4;
+                transform: scale(0.7);
+            }
+        }
+
+        /* ── Panel label ── */
+        .panel-label {
+            display: flex;
+            align-items: center;
+            gap: 8px;
+            font-size: 10px;
+            font-weight: 900;
+            text-transform: uppercase;
+            letter-spacing: 2px;
+            margin-bottom: 10px;
+        }
+
+        /* ── Action buttons ── */
+        .action-btn {
+            flex: 1;
+            padding: 14px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 14px;
+            color: #9ca3af;
+            font-family: 'Poppins', sans-serif;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .action-btn:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        /* ── Study Tips ── */
+        .tip-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 28px;
+            border-top: 3px solid transparent;
+        }
+
+        .tip-card.pre {
+            border-color: var(--accent);
+        }
+
+        .tip-card.mid {
+            border-color: #f59e0b;
+        }
+
+        .tip-card.post {
+            border-color: #10b981;
+        }
+
+        .tip-item {
+            display: flex;
+            gap: 10px;
+            margin-bottom: 10px;
+            font-size: 12px;
+            color: #9ca3af;
+            font-weight: 600;
+        }
+
+        /* ── Profile fields ── */
+        .field-label {
+            font-size: 10px;
+            font-weight: 900;
+            color: var(--muted);
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            margin-bottom: 6px;
+        }
+
+        .profile-grid {
+            display: grid;
+            grid-template-columns: 1fr 1fr;
+            gap: 20px;
+        }
+
+        /* ── Toast ── */
+        #fres-toast {
+            position: fixed;
+            bottom: 28px;
+            right: 28px;
+            z-index: 9999;
+            padding: 14px 22px;
+            border-radius: 14px;
+            font-size: 11px;
+            font-weight: 700;
+            letter-spacing: 1px;
+            text-transform: uppercase;
+            color: white;
+            box-shadow: 0 8px 32px rgba(0, 0, 0, 0.5);
+            transform: translateY(100px);
+            opacity: 0;
+            transition: all 0.35s cubic-bezier(0.34, 1.56, 0.64, 1);
+        }
+
+        #fres-toast.show {
+            transform: translateY(0);
+            opacity: 1;
+        }
+
+        #fres-toast.success {
+            background: linear-gradient(135deg, #16a34a, #15803d);
+        }
+
+        #fres-toast.error {
+            background: linear-gradient(135deg, #dc2626, #b91c1c);
+        }
+
+        #fres-toast.info {
+            background: linear-gradient(135deg, #7c3aed, #6d28d9);
+        }
+
+        /* ── Upload label ── */
+        .upload-label {
+            display: inline-flex;
+            align-items: center;
+            gap: 8px;
+            background: var(--surface);
+            border: 1px solid var(--border);
+            border-radius: 12px;
+            padding: 10px 18px;
+            font-size: 10px;
+            font-weight: 700;
+            text-transform: uppercase;
+            letter-spacing: 1.5px;
+            color: #9ca3af;
+            cursor: pointer;
+            transition: all 0.2s;
+        }
+
+        .upload-label:hover {
+            background: rgba(255, 255, 255, 0.08);
+            color: white;
+        }
+
+        /* ── Announcements ── */
+        .announcement-card {
+            background: var(--surface);
+            border-radius: 16px;
+            padding: 24px 28px;
+            border-left: 4px solid #10b981;
+        }
+
+        .announcement-card .ann-meta {
+            font-size: 9px;
+            font-weight: 900;
+            letter-spacing: 2px;
+            text-transform: uppercase;
+            color: var(--muted);
+            margin-bottom: 8px;
+        }
+
+        .announcement-card p {
+            font-size: 13px;
+            font-weight: 600;
+            color: #e5e7eb;
+            line-height: 1.6;
+        }
+
+        /* Scrollbar global */
+        ::-webkit-scrollbar {
+            width: 4px;
+        }
+
+        ::-webkit-scrollbar-track {
+            background: transparent;
+        }
+
+        ::-webkit-scrollbar-thumb {
+            background: rgba(255, 255, 255, 0.1);
+            border-radius: 4px;
+        }
+    </style>
+</head>
+
+<body>
+
+    <!-- Toast -->
+    <div id="fres-toast"></div>
+
+    <!-- Header -->
+    <header>
+        <div style="display:flex; align-items:center; gap:14px;">
+            <img src="../../assets/nwssu-logo.jpg"
+                style="width:38px;height:38px;border-radius:50%;border:2px solid var(--accent);object-fit:cover;"
+                onerror="this.style.display='none'">
+            <div>
+                <div style="font-size:14px;font-weight:900;letter-spacing:-0.5px;" id="usernameDisplay">Welcome</div>
+                <div
+                    style="font-size:9px;color:var(--muted);font-weight:700;text-transform:uppercase;letter-spacing:2px;">
+                    Student Portal</div>
+            </div>
+        </div>
+        <button id="logoutBtn" style="
+            background: rgba(220,38,38,0.15); border: 1px solid rgba(220,38,38,0.3);
+            color:#f87171; padding: 8px 20px; border-radius: 10px; cursor: pointer;
+            font-family: 'Poppins',sans-serif; font-size: 10px; font-weight: 700;
+            text-transform: uppercase; letter-spacing: 1.5px; transition: all 0.2s;
+        " onmouseenter="this.style.background='rgba(220,38,38,0.25)'"
+            onmouseleave="this.style.background='rgba(220,38,38,0.15)'">
+            <i class="fas fa-sign-out-alt" style="margin-right:6px;"></i>Sign Out
+        </button>
+    </header>
+
+    <div class="dashboard-container">
+
+        <!-- Sidebar -->
+        <aside class="sidebar">
+            <div class="sidebar-label">Navigation</div>
+
+            <button class="nav-btn active" data-view="generator">
+                <div class="icon-wrap" style="color:#e91e63;"><i class="fas fa-wand-sparkles"></i></div>
+                AI Generator
+            </button>
+            <button class="nav-btn" data-view="tips">
+                <div class="icon-wrap" style="color:#f59e0b;"><i class="fas fa-lightbulb"></i></div>
+                Study Tips
+            </button>
+            <button class="nav-btn" data-view="profile">
+                <div class="icon-wrap" style="color:#60a5fa;"><i class="fas fa-user-circle"></i></div>
+                My Profile
+            </button>
+            <button class="nav-btn" data-view="announcements">
+                <div class="icon-wrap" style="color:#34d399;"><i class="fas fa-bullhorn"></i></div>
+                Bulletins
+            </button>
+
+            <!-- Footer info -->
+            <div
+                style="margin-top:auto; padding: 16px 12px; border-top: 1px solid var(--border); font-size:9px; color:var(--muted); font-weight:700; text-transform:uppercase; letter-spacing:1.5px; line-height:1.8;">
+                FRES Web <br>
+                NwSSU CCIS<br>
+
+            </div>
+        </aside>
+
+        <!-- Main Content -->
+        <main class="main-content">
+
+            <!-- ── GENERATOR VIEW ── -->
+            <section id="view-generator" class="view">
+                <div
+                    style="display:flex; align-items:center; justify-content:space-between; border-bottom: 1px solid var(--border); padding-bottom: 20px; margin-bottom: 28px;">
+                    <div>
+                        <div class="section-title">AI Generator</div>
+                        <div class="section-sub">Transform any content into practice tests</div>
+                    </div>
+                    <label class="upload-label">
+                        <i class="fas fa-file-import"></i> Import .txt
+                        <input type="file" id="fileInput" accept=".txt" style="display:none;">
+                    </label>
+                </div>
+
+                <!-- Lesson input -->
+                <div style="margin-bottom:20px;">
+                    <div class="field-label">📄 Lesson Content</div>
+                    <textarea id="lessonText" class="lesson-input"
+                        placeholder="Paste your lecture notes, textbook passages, or study material here…"></textarea>
+                </div>
+
+                <!-- Controls row -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:16px; margin-bottom:20px;">
+                    <div>
+                        <div class="field-label">Reviewer Mode</div>
+                        <select id="generatorType" class="fres-select">
+                            <option value="multipleChoice">📝 Multiple Choice</option>
+                            <option value="trueFalse">✅ True / False</option>
+                            <option value="identification">💬 Identification</option>
+                        </select>
+                    </div>
+                    <div>
+                        <div class="field-label">Number of Items</div>
+                        <input type="number" id="itemCount" value="10" min="1" max="50" class="fres-input">
+                    </div>
+                    <div style="display:flex; align-items:flex-end;">
+                        <button id="generateBtn">
+                            <div class="shimmer"></div>
+                            <i class="fas fa-bolt" style="margin-right:8px;"></i>
+                            Generate Quiz
+                        </button>
+                    </div>
+                </div>
+
+                <!-- Status bar -->
+                <div id="generatorStatus">
+                    <div class="pulse-dot"></div>
+                    <span id="statusText">Connecting to Google Gemini AI…</span>
+                </div>
+
+                <!-- Results grid -->
+                <div style="display:grid; grid-template-columns: 1fr 1fr; gap:24px; margin-top:28px;">
+                    <div>
+                        <div class="panel-label" style="color:#e91e63;">
+                            <i class="fas fa-list-ol"></i> Practice Questions
+                        </div>
+                        <div id="questionResult" class="result-panel">
+                            <span class="placeholder-text">Generated questions will appear here after you click Generate
+                                Quiz.</span>
+                        </div>
+                    </div>
+                    <div>
+                        <div class="panel-label" style="color:#34d399;">
+                            <i class="fas fa-key"></i> Answer Key
+                        </div>
+                        <div id="answerResult" class="result-panel">
+                            <span class="placeholder-text">The answer key will be separated and shown here.</span>
+                        </div>
+                    </div>
+                </div>
+
+                <!-- Action buttons -->
+                <div style="display:flex; gap:12px; margin-top:20px;">
+                    <button class="action-btn" id="printBtn"><i class="fas fa-print"
+                            style="margin-right:6px;"></i>Print</button>
+                    <button class="action-btn" id="downloadBtn"><i class="fas fa-download"
+                            style="margin-right:6px;"></i>Save .txt</button>
+                    <button class="action-btn" id="clearBtn" style="max-width:140px;"><i class="fas fa-trash"
+                            style="margin-right:6px;"></i>Clear</button>
+                </div>
+            </section>
+
+            <!-- ── STUDY TIPS VIEW ── -->
+            <section id="view-tips" class="view hidden">
+                <div class="section-title" style="margin-bottom:6px;">Study Strategies</div>
+                <div class="section-sub" style="margin-bottom:28px;">Evidence-based techniques for academic success
+                </div>
+
+                <div style="display:grid; grid-template-columns: 1fr 1fr 1fr; gap:20px;">
+                    <div class="tip-card pre">
+                        <div
+                            style="font-size:10px;font-weight:900;color:var(--accent);text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;">
+                            <i class="fas fa-flag" style="margin-right:6px;"></i>Phase 1 — Pre-Study
+                        </div>
+                        <ul id="beforeTips"></ul>
+                    </div>
+                    <div class="tip-card mid">
+                        <div
+                            style="font-size:10px;font-weight:900;color:#f59e0b;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;">
+                            <i class="fas fa-brain" style="margin-right:6px;"></i>Phase 2 — In-Session
+                        </div>
+                        <ul id="duringTips"></ul>
+                    </div>
+                    <div class="tip-card post">
+                        <div
+                            style="font-size:10px;font-weight:900;color:#10b981;text-transform:uppercase;letter-spacing:2px;margin-bottom:18px;">
+                            <i class="fas fa-check-double" style="margin-right:6px;"></i>Phase 3 — After-Study
+                        </div>
+                        <ul id="afterTips"></ul>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── PROFILE VIEW ── -->
+            <section id="view-profile" class="view hidden">
+                <div class="section-title" style="margin-bottom:6px;">My Profile</div>
+                <div class="section-sub" style="margin-bottom:28px;">Manage your academic identity</div>
+
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;">
+                    <div class="profile-grid">
+                        <div>
+                            <div class="field-label">Username</div>
+                            <input id="inputUsername" class="fres-input" placeholder="Your username">
+                        </div>
+                        <div>
+                            <div class="field-label">Full Name</div>
+                            <input id="inputName" class="fres-input" placeholder="Your full name">
+                        </div>
+                        <div>
+                            <div class="field-label">Gender</div>
+                            <select id="inputGender" class="fres-select">
+                                <option value="Male">Male</option>
+                                <option value="Female">Female</option>
+                                <option value="Other">Other / Prefer not to say</option>
+                            </select>
+                        </div>
+                        <div>
+                            <div class="field-label">Student / Educator</div>
+                            <input id="inputType" class="fres-input" placeholder="e.g. BSIT Student">
+                        </div>
+                        <div>
+                            <div class="field-label">Birth Date</div>
+                            <input id="inputBirthdate" type="date" class="fres-input">
+                        </div>
+                        <div>
+                            <div class="field-label">Favorite Subject</div>
+                            <input id="inputFavSubject" class="fres-input" placeholder="e.g. Data Structures">
+                        </div>
+                    </div>
+                    <div style="margin-top:24px; padding-top:24px; border-top:1px solid var(--border);">
+                        <button id="saveProfileBtn" style="
+                            background: linear-gradient(135deg, var(--accent), var(--accent2));
+                            border:none; border-radius:12px; padding:14px 36px;
+                            color:white; font-family:'Poppins',sans-serif; font-size:10px;
+                            font-weight:900; text-transform:uppercase; letter-spacing:2px;
+                            cursor:pointer; box-shadow:0 8px 24px rgba(233,30,99,0.3); transition:all 0.2s;
+                        ">Save Profile</button>
+                    </div>
+                </div>
+            </section>
+
+            <!-- ── ANNOUNCEMENTS VIEW ── -->
+            <section id="view-announcements" class="view hidden">
+                <div class="section-title" style="margin-bottom:6px;">Academic Bulletins</div>
+                <div class="section-sub" style="margin-bottom:28px;">Official announcements from administration</div>
+
+                <div id="announcementList" style="display:flex;flex-direction:column;gap:14px;">
+                    <div
+                        style="background:var(--surface);border-radius:16px;padding:28px;text-align:center;color:var(--muted);font-style:italic;font-size:13px;">
+                        <i class="fas fa-inbox"
+                            style="font-size:24px;display:block;margin-bottom:10px;opacity:0.4;"></i>
+                        No announcements yet.
+                    </div>
+                </div>
+            </section>
+
+        </main>
+    </div>
+
+    <script type="module">
+        import { generateReviewer, handlePrint, downloadTXT } from '../js/components/generator.js';
+        import { apiRequest } from '../js/core/api.js';
+
+        // ── Study tips data ───────────────────────────────────────────────
+        const studyTips = {
+            before: ["Set clear, specific goals.", "Gather all materials first.", "Choose a quiet environment.", "Create a realistic schedule.", "Review previous notes.", "Quick stretch to boost focus.", "Eat a light, healthy snack.", "Identify hard topics first.", "Break tasks into chunks.", "Disable notifications.", "Inform others you're studying.", "Visualize your success.", "Use Pomodoro (25/5 min).", "Prepare a topic outline.", "Review the exam format."],
+            during: ["Practice active recall.", "Use the Feynman Technique.", "Take brief, key-point notes.", "Connect ideas to prior knowledge.", "Draw concept maps.", "Use mnemonics for lists.", "Switch topics to stay sharp.", "Take short breaks every 25 min.", "Apply spaced repetition.", "Engage multiple senses.", "Summarize each section.", "Ask 'Why?' and 'How?'.", "Study during peak focus hours.", "Explain concepts to yourself.", "Solve practice problems."],
+            after: ["Reward yourself fairly.", "Quick 5-min final review.", "Review notes before sleeping.", "Organize for the next session.", "Get restful, quality sleep.", "Avoid cramming new material.", "Do light physical activity.", "Self-test after 24 hours.", "Reflect on what worked.", "Plan the next study session.", "Tidy your study space.", "Do a relaxing hobby.", "Identify remaining weak areas.", "Teach the concept to a peer.", "Limit screen time afterward."]
+        };
+
+        // ── Toast helper ─────────────────────────────────────────────────
+        function toast(msg, type = "info") {
+            const el = document.getElementById('fres-toast');
+            el.textContent = msg;
+            el.className = type;
+            el.classList.add('show');
+            clearTimeout(el._t);
+            el._t = setTimeout(() => el.classList.remove('show'), 4000);
+        }
+
+        // ── Init user display ─────────────────────────────────────────────
+        const currentUser = localStorage.getItem("fres_current_user") || "Student";
+        const disp = document.getElementById('usernameDisplay');
+        if (disp) disp.innerHTML = `Welcome, <span style="color:var(--accent)">${currentUser.toUpperCase()}</span>`;
+
+        // ── Navigation ────────────────────────────────────────────────────
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                const viewId = btn.getAttribute('data-view');
+                document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
+                document.getElementById(`view-${viewId}`)?.classList.remove('hidden');
+                document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+                btn.classList.add('active');
+                if (viewId === 'tips') renderTips();
+                if (viewId === 'announcements') loadAnnouncements();
+            });
+        });
+
+        // ── Study Tips renderer ───────────────────────────────────────────
+        function renderTips() {
+            const render = (id, tips, color) => {
+                const el = document.getElementById(id);
+                if (el) el.innerHTML = tips.map(t =>
+                    `<li class="tip-item"><i class="fas fa-check-circle" style="color:${color};margin-top:2px;flex-shrink:0;"></i><span>${t}</span></li>`
+                ).join('');
+            };
+            render('beforeTips', studyTips.before, '#e91e63');
+            render('duringTips', studyTips.during, '#f59e0b');
+            render('afterTips', studyTips.after, '#10b981');
+        }
+
+        // ── Profile ───────────────────────────────────────────────────────
+        const profile = JSON.parse(localStorage.getItem('fres_profile') || '{}');
+        ['inputUsername', 'inputName', 'inputGender', 'inputType', 'inputBirthdate', 'inputFavSubject'].forEach(id => {
+            const el = document.getElementById(id);
+            if (!el) return;
+            const key = id.replace('input', '').toLowerCase();
+            el.value = profile[key] || (id === 'inputUsername' ? currentUser : '');
+        });
+
+        document.getElementById('saveProfileBtn')?.addEventListener('click', () => {
+            const updated = {};
+            ['inputUsername', 'inputName', 'inputGender', 'inputType', 'inputBirthdate', 'inputFavSubject'].forEach(id => {
+                updated[id.replace('input', '').toLowerCase()] = document.getElementById(id)?.value;
+            });
+            localStorage.setItem('fres_profile', JSON.stringify(updated));
+            toast("Profile saved successfully!", "success");
+        });
+
+        // ── Generator ────────────────────────────────────────────────────
+        const generateBtn = document.getElementById('generateBtn');
+        const statusBar = document.getElementById('generatorStatus');
+        const statusText = document.getElementById('statusText');
+
+        const setStatus = (msg) => {
+            statusBar.style.display = msg ? 'flex' : 'none';
+            if (msg) statusText.textContent = msg;
+        };
+
+        generateBtn?.addEventListener('click', async () => {
+            const text = document.getElementById('lessonText').value.trim();
+            const type = document.getElementById('generatorType').value;
+            const count = document.getElementById('itemCount').value;
+
+            if (!text) return toast("Please paste your lesson content first.", "error");
+            if (parseInt(count) < 1 || parseInt(count) > 50) return toast("Item count must be between 1 and 50.", "error");
+
+            generateBtn.disabled = true;
+            generateBtn.classList.add('loading');
+            generateBtn.innerHTML = '<div class="shimmer"></div><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Sending to Gemini AI…';
+            setStatus("Sending content to Google Gemini AI…");
+
+            document.getElementById('questionResult').innerHTML = '<span class="placeholder-text" style="display:flex;align-items:center;gap:10px;"><i class="fas fa-spinner fa-spin" style="color:var(--accent);"></i> Generating questions…</span>';
+            document.getElementById('answerResult').innerHTML = '<span class="placeholder-text" style="display:flex;align-items:center;gap:10px;"><i class="fas fa-spinner fa-spin" style="color:#34d399;"></i> Preparing answer key…</span>';
+
+            try {
+                setStatus("Waiting for AI response (may take 5–15 seconds)…");
+                const res = await generateReviewer(type, text, count);
+
+                document.getElementById('questionResult').textContent = res.questions;
+                document.getElementById('questionResult').classList.add('has-content');
+                document.getElementById('answerResult').textContent = res.answers;
+                document.getElementById('answerResult').classList.add('has-content');
+
+                localStorage.setItem('last_generated_q', res.questions);
+                localStorage.setItem('last_generated_a', res.answers);
+
+                setStatus(null);
+                toast(`✓ ${count} questions generated successfully!`, "success");
+            } catch (err) {
+                console.error("Generation error:", err);
+                const errMsg = err.message || "Unknown error";
+                document.getElementById('questionResult').innerHTML = `<span style="color:#f87171;font-size:12px;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>${errMsg}</span>`;
+                document.getElementById('answerResult').innerHTML = `<span class="placeholder-text">Failed to generate.</span>`;
+                setStatus(null);
+                toast("Generation failed: " + errMsg, "error");
+            } finally {
+                generateBtn.disabled = false;
+                generateBtn.classList.remove('loading');
+                generateBtn.innerHTML = '<div class="shimmer"></div><i class="fas fa-bolt" style="margin-right:8px;"></i>Generate Quiz';
+            }
+        });
+
+        // File import
+        document.getElementById('fileInput')?.addEventListener('change', (e) => {
+            const file = e.target.files[0];
+            if (!file) return;
+            const reader = new FileReader();
+            reader.onload = (ev) => {
+                document.getElementById('lessonText').value = ev.target.result;
+                toast(`Loaded: ${file.name}`, "info");
+            };
+            reader.readAsText(file);
+        });
+
+        // Clear button
+        document.getElementById('clearBtn')?.addEventListener('click', () => {
+            document.getElementById('lessonText').value = '';
+            document.getElementById('questionResult').innerHTML = '<span class="placeholder-text">Generated questions will appear here after you click Generate Quiz.</span>';
+            document.getElementById('answerResult').innerHTML = '<span class="placeholder-text">The answer key will be separated and shown here.</span>';
+            document.getElementById('questionResult').classList.remove('has-content');
+            document.getElementById('answerResult').classList.remove('has-content');
+            localStorage.removeItem('last_generated_q');
+            localStorage.removeItem('last_generated_a');
+        });
+
+        // Print + Download
+        document.getElementById('printBtn')?.addEventListener('click', handlePrint);
+        document.getElementById('downloadBtn')?.addEventListener('click', downloadTXT);
+
+        // Logout
+        document.getElementById('logoutBtn')?.addEventListener('click', () => {
+            localStorage.clear();
+            window.location.href = "../index.html";
+        });
+
+        // ── Announcements ────────────────────────────────────────────────
+        async function loadAnnouncements() {
+            const list = document.getElementById('announcementList');
+            list.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:10px;"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Loading…</div>`;
+            try {
+                const data = await apiRequest('/admin/announcements');
+                if (!data.length) {
+                    list.innerHTML = `<div style="background:var(--surface);border-radius:16px;padding:28px;text-align:center;color:var(--muted);font-style:italic;font-size:13px;"><i class="fas fa-inbox" style="font-size:24px;display:block;margin-bottom:10px;opacity:0.4;"></i>No announcements yet.</div>`;
+                    return;
+                }
+                list.innerHTML = data.map(msg => `
+                    <div class="announcement-card">
+                        <div class="ann-meta"><i class="fas fa-bullhorn" style="margin-right:6px;color:#10b981;"></i>Official Bulletin</div>
+                        <p>${msg}</p>
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = `<div style="color:#f87171;font-size:12px;padding:10px;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>Could not load announcements.</div>`;
+            }
+        }
+    </script>
+</body>
+
+</html>

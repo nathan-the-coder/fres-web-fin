@@ -1,0 +1,43 @@
+/* FRES Web Portal — Theme Variables */
+:root {
+    --accent:       #e91e63;
+    --accent2:      #7b1fa2;
+    --accent-glow:  rgba(233, 30, 99, 0.35);
+    --bg:           #0d091e;
+    --surface:      rgba(255,255,255,0.04);
+    --border:       rgba(255,255,255,0.07);
+}
+
+/* ── Optional themed overrides (applied via data-theme on <body>) ── */
+[data-theme="theme-neon"] {
+    --accent:      #00f2ff;
+    --accent2:     #0070ff;
+    --accent-glow: rgba(0, 242, 255, 0.35);
+    --bg:          #050a0f;
+}
+
+[data-theme="theme-sunset"] {
+    --accent:      #ff5f6d;
+    --accent2:     #ffc371;
+    --accent-glow: rgba(255, 95, 109, 0.35);
+    --bg:          #1a0a0a;
+}
+
+[data-theme="theme-forest"] {
+    --accent:      #2ecc71;
+    --accent2:     #1abc9c;
+    --accent-glow: rgba(46, 204, 113, 0.35);
+    --bg:          #0a1a10;
+}
+
+[data-theme="theme-midnight"] {
+    --accent:      #3b82f6;
+    --accent2:     #6366f1;
+    --accent-glow: rgba(59, 130, 246, 0.35);
+    --bg:          #0a0e1a;
+}
+
+body {
+    background-color: var(--bg) !important;
+    transition: background-color 0.4s ease;
+}

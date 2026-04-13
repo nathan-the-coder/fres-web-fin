@@ -1,0 +1,19 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(.venv/bin/pip *)",
+      "Bash(.venv/bin/python3 *)",
+      "WebSearch",
+      "WebFetch(www.datastudios.org)",
+      "WebFetch(community.groq.com)",
+      "WebFetch(openrouter.ai)",
+      "Bash(mkdir *)",
+      "Bash(rm *)",
+      "Bash(.venv/bin/python *)",
+      "Bash(tree *)",
+      "Bash(npm *)",
+      "Bash(git add *)"
+    ]
+  },
+  "$version": 3
+}

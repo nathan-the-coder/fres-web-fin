@@ -1,0 +1,21 @@
+# Development files
+.venv/
+__pycache__/
+*.pyc
+test_ai.py
+SETUP_OPENROUTER.md
+
+# IDE
+.vscode/
+.idea/
+*.swp
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Git
+.git/
+
+# Local environment
+.env.local
