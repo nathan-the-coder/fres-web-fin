@@ -1,3 +1,4 @@
 # FRES Backend - Production Dependencies
 # OpenRouter AI API (OpenAI-compatible)
 openai>=2.0.0
+flask>=3.0.0

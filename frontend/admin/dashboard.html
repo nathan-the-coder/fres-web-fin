@@ -28,6 +28,10 @@
         /* View animation */
         .view{animation:fadeUp 0.2s ease;}
         @keyframes fadeUp{from{opacity:0;transform:translateY(6px);}to{opacity:1;transform:translateY(0);}}
+        .view.hidden{display:block;}
+
+        /* Ensure all views are visible for scrolling */
+        .main{scroll-behavior:smooth;}
 
         /* Section headers */
         .page-title{font-size:26px;font-weight:900;font-style:italic;letter-spacing:-1px;}
@@ -165,7 +169,7 @@
                     <div style="display:grid;grid-template-columns:1fr 1fr;gap:16px;font-size:12px;font-weight:600;color:#9ca3af;">
                         <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Backend</span>Vanilla Python — http.server</div>
                         <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Database</span>SQLite 3 (instance/fres.db)</div>
-                        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">AI Model</span>Google Gemini 2.0 Flash</div>
+                        <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">AI Model</span>OpenRouter AI</div>
                         <div><span style="color:var(--muted);font-size:10px;text-transform:uppercase;letter-spacing:1px;display:block;margin-bottom:4px;">Version</span>FRES Web v2.0</div>
                     </div>
                 </div>
@@ -239,8 +243,10 @@
         document.querySelectorAll('.nav-btn').forEach(btn => {
             btn.addEventListener('click', () => {
                 const view = btn.getAttribute('data-view');
-                document.querySelectorAll('.view').forEach(v => v.classList.add('hidden'));
-                document.getElementById(`view-${view}`)?.classList.remove('hidden');
+                const target = document.getElementById(`view-${view}`);
+                if (target) {
+                    target.scrollIntoView({ behavior: 'smooth', block: 'start' });
+                }
                 document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
                 btn.classList.add('active');
                 if (view === 'users')         loadUsers();
