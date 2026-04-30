@@ -584,6 +584,10 @@
                 <div class="icon-wrap" style="color:#34d399;"><i class="fas fa-bullhorn"></i></div>
                 Bulletins
             </button>
+            <button class="nav-btn" data-view="suggestions">
+                <div class="icon-wrap" style="color:#818cf8;"><i class="fas fa-lightbulb"></i></div>
+                Suggestions
+            </button>
 
             <!-- Footer info -->
             <div
@@ -773,6 +777,43 @@
                 </div>
             </section>
 
+            <!-- ── SUGGESTIONS VIEW ── -->
+            <section id="view-suggestions" class="view hidden">
+                <div class="section-title" style="margin-bottom:6px;">Submit a Suggestion</div>
+                <div class="section-sub" style="margin-bottom:28px;">Share your ideas to improve FRES Web</div>
+
+                <div style="background:var(--surface);border:1px solid var(--border);border-radius:20px;padding:32px;max-width:700px;">
+                    <div style="margin-bottom:20px;">
+                        <div class="field-label">Your Name (Optional)</div>
+                        <input id="suggestionName" class="fres-input" placeholder="Anonymous" style="max-width:300px;">
+                    </div>
+                    <div style="margin-bottom:24px;">
+                        <div class="field-label">Your Suggestion</div>
+                        <textarea id="suggestionText" class="lesson-input" style="height:160px;"
+                            placeholder="Type your suggestion, idea, or feedback here…"></textarea>
+                    </div>
+                    <button id="submitSuggestionBtn" style="
+                        background: linear-gradient(135deg, #818cf8, #6366f1);
+                        border:none; border-radius:12px; padding:14px 36px;
+                        color:white; font-family:'Poppins',sans-serif; font-size:10px;
+                        font-weight:900; text-transform:uppercase; letter-spacing:2px;
+                        cursor:pointer; box-shadow:0 8px 24px rgba(129,140,248,0.3); transition:all 0.2s;
+                    ">
+                        <i class="fas fa-paper-plane" style="margin-right:8px;"></i>Submit Suggestion
+                    </button>
+                </div>
+
+                <!-- My Submissions -->
+                <div style="margin-top:36px;">
+                    <div class="panel-label" style="color:#818cf8; margin-bottom:14px;">
+                        <i class="fas fa-history"></i>My Submissions
+                    </div>
+                    <div id="mySuggestionsList" style="display:flex;flex-direction:column;gap:12px;">
+                        <div style="color:var(--muted);font-size:12px;font-style:italic;">No submissions yet.</div>
+                    </div>
+                </div>
+            </section>
+
         </main>
     </div>
 
@@ -931,6 +972,62 @@
         document.getElementById('logoutBtn')?.addEventListener('click', () => {
             localStorage.clear();
             window.location.href = "../index.html";
+        });
+
+        // ── Suggestions ──────────────────────────────────────────────
+        document.getElementById('submitSuggestionBtn')?.addEventListener('click', async () => {
+            const name = document.getElementById('suggestionName').value.trim();
+            const text = document.getElementById('suggestionText').value.trim();
+            if (!text) return toast("Please enter your suggestion.", "error");
+
+            const btn = document.getElementById('submitSuggestionBtn');
+            btn.disabled = true;
+            btn.innerHTML = '<i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Submitting…';
+
+            try {
+                await apiRequest('/suggestions', 'POST', { username: name || 'Anonymous', text });
+                toast("Suggestion submitted! Thank you.", "success");
+                document.getElementById('suggestionText').value = '';
+                document.getElementById('suggestionName').value = '';
+                loadMySuggestions();
+            } catch (e) {
+                toast("Failed: " + e.message, "error");
+            } finally {
+                btn.disabled = false;
+                btn.innerHTML = '<i class="fas fa-paper-plane" style="margin-right:8px;"></i>Submit Suggestion';
+            }
+        });
+
+        async function loadMySuggestions() {
+            const list = document.getElementById('mySuggestionsList');
+            const currentUser = localStorage.getItem("fres_current_user") || "Anonymous";
+            list.innerHTML = `<div style="color:var(--muted);font-size:12px;padding:10px;"><i class="fas fa-spinner fa-spin" style="margin-right:8px;"></i>Loading…</div>`;
+            try {
+                const data = await apiRequest('/admin/suggestions');
+                const mine = data.filter(s => s.username === currentUser || s.username === 'Anonymous');
+                if (!mine.length) {
+                    list.innerHTML = '<div style="color:var(--muted);font-size:12px;font-style:italic;">No submissions yet.</div>';
+                    return;
+                }
+                list.innerHTML = mine.map(s => `
+                    <div style="background:var(--surface);border-radius:14px;padding:18px 22px;border-left:3px solid #818cf8;">
+                        <div style="font-size:12px;color:#e5e7eb;line-height:1.6;margin-bottom:8px;">${s.text}</div>
+                        <div style="font-size:9px;font-weight:900;letter-spacing:1.5px;text-transform:uppercase;color:var(--muted);">
+                            ${s.timestamp}${s.reply ? ' · Replied' : ''}
+                        </div>
+                        ${s.reply ? `<div style="margin-top:10px;padding:10px 14px;background:rgba(129,140,248,0.08);border-radius:10px;font-size:11px;color:#a5b4fc;line-height:1.5;">💬 ${s.reply}</div>` : ''}
+                    </div>
+                `).join('');
+            } catch (e) {
+                list.innerHTML = `<div style="color:#f87171;font-size:12px;"><i class="fas fa-exclamation-triangle" style="margin-right:6px;"></i>Could not load.</div>`;
+            }
+        }
+
+        // Load suggestions when view is shown
+        document.querySelectorAll('.nav-btn').forEach(btn => {
+            btn.addEventListener('click', () => {
+                if (btn.getAttribute('data-view') === 'suggestions') loadMySuggestions();
+            });
         });
 
         // ── Announcements ────────────────────────────────────────────────

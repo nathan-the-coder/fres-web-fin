@@ -96,3 +96,20 @@ def post_announcement_handler(req):
     db.commit()
     db.close()
     return {"success": True}, 201
+
+def submit_suggestion_handler(req):
+    data = req.get('body', {}) if isinstance(req, dict) else {}
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except:
+            data = {}
+    username = data.get('username', 'Anonymous').strip()
+    text = data.get('text', '').strip()
+    if not text:
+        return {"success": False, "error": "Suggestion text cannot be empty."}, 400
+    db = get_db()
+    db.execute("INSERT INTO suggestions (username, text) VALUES (?, ?)", (username, text))
+    db.commit()
+    db.close()
+    return {"success": True}, 201

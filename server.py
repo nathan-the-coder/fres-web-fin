@@ -49,6 +49,10 @@ def get_suggestions():
 def reply_suggestion(suggestion_id):
     return admin_handler.reply_suggestion_handler(request, suggestion_id)
 
+@app.route('/api/suggestions', methods=['POST'])
+def submit_suggestion():
+    return admin_handler.submit_suggestion_handler(request)
+
 @app.route('/api/admin/announcements', methods=['GET', 'POST'])
 def announcements():
     if request.method == 'GET':
