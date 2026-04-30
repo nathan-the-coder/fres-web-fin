@@ -7,7 +7,7 @@ services:
     startCommand: python server.py
     envVars:
       - key: OPENROUTER_API_KEY
-        value: your-api-key-here
+        value: ${OPENROUTER_API_KEY}
       - key: OPENROUTER_MODEL
         value: openrouter/auto
       - key: OPENROUTER_BASE_URL
