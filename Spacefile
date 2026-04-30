@@ -1,0 +1,17 @@
+# Deta Space configuration
+v: 0
+
+app:
+  name: fres-web-fin
+  python: "3.12"
+
+functions:
+  api:
+    handler: server.py
+    path: /api
+    timeout: 10
+  
+  frontend:
+    handler: server.py
+    path: /
+    timeout: 10
