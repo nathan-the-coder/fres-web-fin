@@ -140,7 +140,8 @@ if __name__ == "__main__":
         logger.warning("OPENROUTER_API_KEY is not set. AI generation will fail. Get one at https://openrouter.ai")
 
     PORT = int(os.environ.get("PORT", 5000))
+    HOST = os.environ.get("HOST", "0.0.0.0")
     init_db()
-    logger.info(f"🚀 FRES Backend running at http://127.0.0.1:{PORT}")
-    server = HTTPServer(("127.0.0.1", PORT), FRESHandler)
+    logger.info(f"🚀 FRES Backend running at http://{HOST}:{PORT}")
+    server = HTTPServer((HOST, PORT), FRESHandler)
     server.serve_forever()
