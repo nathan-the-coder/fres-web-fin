@@ -1,193 +1,213 @@
-# FRES Backend - Filipino Reviewer & Evaluation System
+# FRES Web — Filipino Reviewer & Evaluation System
 
-A backend system for quiz generation using AI (OpenRouter API) with user management, admin dashboard, and SQLite database.
+AI-powered quiz generator for students, built with Flask and OpenRouter AI. Features user management, admin dashboard, student suggestions, and announcements.
 
-## 🚀 Quick Deploy to Vercel
+## 🚀 Deploy to Render.com
 
-[![Deploy with Vercel](https://vercel.com/button)](https://vercel.com/new/clone?repository-url=YOUR_REPO_URL)
+This project is configured for [Render.com](https://render.com) using Gunicorn + Flask.
 
-### Deployment Steps
+### One-Click Deploy
 
-1. **Push to Git**
-   ```bash
-   git add .
-   git commit -m "Prepare for Vercel deployment"
-   git push origin main
-   ```
+1. Fork/clone this repo
+2. Create a new **Web Service** on Render
+3. Connect your Git repository
+4. Render will auto-detect the config from `render.yaml`
 
-2. **Connect to Vercel**
-   - Go to https://vercel.com/new
-   - Import your Git repository
-   - Vercel will auto-detect the Python project
+### Environment Variables
 
-3. **Set Environment Variables in Vercel**
-   In your Vercel project settings → Environment Variables, add:
-   ```
-   OPENROUTER_API_KEY=your-api-key-here
-   OPENROUTER_MODEL=openrouter/auto
-   OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
-   ```
+Set these in your Render service settings → Environment:
 
-4. **Initialize Database**
-   After deployment, run the database initialization:
-   ```bash
-   # Via Vercel CLI
-   vercel run api/init_db.py
-   ```
-   Or access it once via browser: `https://your-domain.vercel.app/api/init_db.py`
+```
+OPENROUTER_API_KEY=your-api-key-here
+OPENROUTER_MODEL=openrouter/auto
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
 
-5. **Deploy!**
-   Vercel will automatically deploy on every push to main branch.
+### Start Command
+
+```
+gunicorn -b 0.0.0.0:$PORT server:app
+```
 
 ## 📁 Project Structure
 
 ```
 FRES-WEB-FIN/
-├── api/                      # Vercel serverless functions (PRODUCTION)
-│   ├── base.py              # Shared utilities
-│   ├── ai.py                # AI quiz generation endpoint
-│   ├── users.py             # User authentication endpoints
-│   ├── admin.py             # Admin management endpoints
-│   ├── ping.py              # Health check endpoint
-│   └── init_db.py           # Database initialization script
+├── server.py                 # Flask app (entry point for Gunicorn)
+├── db.py                     # SQLite init + helper functions
+├── handlers/                 # Request handlers (users, admin, AI)
+│   ├── users_handler.py
+│   ├── admin_handler.py
+│   └── ai_handler.py
 ├── frontend/                 # Static frontend files
 │   ├── index.html
 │   ├── register.html
 │   ├── css/
 │   ├── js/
+│   │   ├── core/api.js
+│   │   └── components/generator.js
 │   ├── user/
+│   │   └── dashboard.html   # Student portal (AI generator, suggestions)
 │   └── admin/
-├── handlers/                 # Legacy handlers (local dev only)
-├── server.py                 # Local development server
-├── db.py                     # Database utilities
-├── instance/                 # SQLite database (auto-created)
-│   └── fres.db
+│       └── dashboard.html    # Admin portal (users, suggestions, announcements)
 ├── assets/                   # Static assets (logos, images)
-├── vercel.json               # Vercel configuration
+├── instance/                 # SQLite database (auto-created, gitignored)
+│   └── fres.db
+├── render.yaml               # Render.com deployment config
 ├── requirements.txt          # Python dependencies
-├── .gitignore               # Git ignore rules
-└── .vercelignore            # Vercel deploy ignore rules
+└── .env                     # Local environment vars (gitignored)
 ```
 
 ## 🛠️ Local Development
 
+### Prerequisites
+
+- Python 3.10+
+- [OpenRouter API key](https://openrouter.ai) (free tier: 50 requests/day)
+
 ### Setup
 
-1. **Install dependencies**
-   ```bash
-   python3 -m venv .venv
-   source .venv/bin/activate
-   pip install -r requirements.txt
-   ```
+```bash
+# Clone the repo
+git clone https://github.com/nathan-the-coder/fres-web-fin.git
+cd fres-web-fin
 
-2. **Configure environment**
-   Create `.env` file:
-   ```env
-   OPENROUTER_API_KEY=your-api-key-here
-   OPENROUTER_MODEL=openrouter/auto
-   PORT=5000
-   ```
+# Create virtual environment
+python3 -m venv .venv
+source .venv/bin/activate
 
-3. **Initialize database**
-   ```bash
-   python db.py
-   ```
+# Install dependencies
+pip install -r requirements.txt
 
-4. **Run local server**
-   ```bash
-   python server.py
-   ```
+# Configure environment
+cp .env.example .env   # then edit .env and add your API key
+```
 
-5. **Access the app**
-   Open http://127.0.0.1:5000/
+### Environment Variables (`.env`)
+
+```
+OPENROUTER_API_KEY=sk-or-v1-...
+OPENROUTER_MODEL=openrouter/auto
+OPENROUTER_BASE_URL=https://openrouter.ai/api/v1
+```
+
+### Run Locally
+
+```bash
+python server.py
+```
+
+The database auto-initializes on startup. Visit http://127.0.0.1:5000/
+
+### Default Admin Credentials
+
+```
+Username: admin
+Password: admin123
+```
+
+> ⚠️ Change the default password immediately after first login.
 
 ## 🤖 AI Configuration
 
-### Get FREE OpenRouter API Key
+### Get a FREE OpenRouter API Key
 
 1. Visit https://openrouter.ai
 2. Sign up (free, 30 seconds)
-3. Copy your API key from dashboard
-4. Add to `.env` or Vercel environment variables
+3. Copy your API key from the dashboard
+4. Add it to `.env` or Render environment variables
 
 ### Free Tier Limits
 
-- **50 requests/day** - completely free
+- **50 requests/day** — completely free
 - **20 requests/minute** rate limit
-- **No expiration** - permanent free tier
-- **200,000 token context window**
+- **No expiration** — permanent free tier
+- **200,000 token** context window
 
-Perfect for quiz generation: ~500 questions/day (10 questions per request)
+Perfect for quiz generation: ~500 questions/day (10 questions per request).
 
 ### Available Free Models
 
 Browse at: https://openrouter.ai/openrouter/free
 
-- `openrouter/auto` - Auto-selects best available model (default)
-- `qwen/qwen-2.5-72b-instruct:free` - High quality
-- `nvidia/nemotron-3-super-120b-a12b:free` - NVIDIA's model
+- `openrouter/auto` — Auto-selects best available model (default)
+- `qwen/qwen-2.5-72b-instruct:free` — High quality
+- `nvidia/nemotron-3-super-120b-a12b:free` — NVIDIA's model
 
 ## 📡 API Endpoints
 
 ### User Endpoints
-- `POST /api/users/login` - User login
-- `POST /api/users/register` - User registration
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/users/login` | User login |
+| POST | `/api/users/register` | User registration |
 
 ### AI Endpoints
-- `POST /api/ai/generate` - Generate quiz questions
-- `GET /api/ai/logs` - Get AI generation logs
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/ai/generate` | Generate quiz questions |
+| GET | `/api/ai/logs` | Get AI generation logs |
+
+### Suggestions
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| POST | `/api/suggestions` | Submit a suggestion (students) |
+| GET | `/api/admin/suggestions` | List all suggestions (admin) |
+| POST | `/api/admin/suggestions/:id/reply` | Reply to suggestion (admin) |
 
 ### Admin Endpoints
-- `GET /api/admin/stats` - Dashboard statistics
-- `GET /api/admin/users` - List all users
-- `PUT /api/admin/users/:id/status` - Update user status
-- `GET /api/admin/suggestions` - Get suggestions
-- `POST /api/admin/suggestions/:id/reply` - Reply to suggestion
-- `GET /api/admin/announcements` - Get announcements
-- `POST /api/admin/announcements` - Create announcement
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/admin/stats` | Dashboard statistics |
+| GET | `/api/admin/users` | List all users |
+| PUT | `/api/admin/users/:id/status` | Activate/disable user |
+| GET/POST | `/api/admin/announcements` | Manage announcements |
 
 ### Health Check
-- `GET /api/ping` - System status check
+| Method | Endpoint | Description |
+|--------|----------|-------------|
+| GET | `/api/ping` | System status check |
 
 ## 🗄️ Database
 
-Uses SQLite (zero-config, serverless). Database file auto-creates in `instance/fres.db`.
+Uses SQLite (zero-config). Database file auto-creates at `instance/fres.db` on server start.
 
 ### Tables
-- `users` - User accounts
-- `chat_logs` - AI generation history
-- `suggestions` - User feedback
-- `announcements` - Admin announcements
+- `users` — User accounts (username, password hash, role, status)
+- `chat_logs` — AI generation history
+- `suggestions` — Student feedback and suggestions
+- `announcements` — Admin announcements
 
 ## 🔒 Security Notes
 
 - Passwords hashed with SHA-256 (consider upgrading to bcrypt for production)
-- Default admin: `admin` / `admin123` (change immediately!)
-- CORS enabled for all origins (restrict in production if needed)
-- API keys stored in environment variables (never commit to Git)
+- Default admin credentials should be changed immediately after deployment
+- API keys stored in environment variables only (never committed to Git)
+- `.env` and `instance/*.db` are excluded via `.gitignore`
 
 ## 📦 Dependencies
 
-- `openai>=2.0.0` - OpenRouter API client (OpenAI-compatible)
+```
+flask>=3.0.0       # Web framework
+openai>=2.0.0      # OpenRouter API client (OpenAI-compatible)
+gunicorn            # WSGI server for Render deployment
+```
 
-## 🔄 Migration from Google Gemini
+## 🔄 Migration Notes
 
-This project migrated from Google Gemini (quota issues) to OpenRouter (generous free tier).
-
-**Changes:**
-- Removed `google-cloud-aiplatform` dependency
-- Added `openai` package
-- Updated API handlers to use OpenRouter
-- Better error messages for rate limits
+This project previously used:
+- **Google Gemini** → Migrated to OpenRouter (better free tier)
+- **Vercel** → Migrated to Render.com (more reliable Flask deployment)
+- **`api/` serverless functions** → Unified Flask app (`server.py`)
 
 ## 📝 License
 
-Private project - FRES System
+Private project — FRES System (NwSSU CCIS)
 
-## 👥 Support
+## 🆘 Support
 
-For issues or questions about deployment:
-1. Check Vercel deployment logs
-2. Verify environment variables are set
-3. Ensure database is initialized
-4. Check OpenRouter API key is valid and has quota
+For deployment issues:
+1. Check Render deployment logs
+2. Verify environment variables are set correctly
+3. Ensure the database initialized (check `/api/ping` response)
+4. Check OpenRouter API key is valid and has remaining quota
