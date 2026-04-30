@@ -7,8 +7,9 @@ FRES Admin Handler
 /api/admin/suggestions/<id>/reply
 /api/admin/announcements
 """
-from flask import request, jsonify
+import sqlite3
 from db import get_db
+import json
 
 def stats_handler(req):
     db = get_db()
@@ -16,26 +17,25 @@ def stats_handler(req):
     total_sug   = db.execute("SELECT COUNT(*) as n FROM suggestions").fetchone()["n"]
     total_gen   = db.execute("SELECT COUNT(*) as n FROM chat_logs").fetchone()["n"]
     db.close()
-    return jsonify({
-        "total_users": total_users,
-        "total_suggestions": total_sug,
-        "total_generations": total_gen,
-    }), 200
+    return {"total_users": total_users, "total_suggestions": total_sug, "total_generations": total_gen}
 
 def get_users_handler(req):
     db = get_db()
-    rows = db.execute(
-        "SELECT id, username, role, status, registered_at FROM users ORDER BY id DESC"
-    ).fetchall()
+    rows = db.execute("SELECT id, username, role, status, registered_at FROM users ORDER BY id DESC").fetchall()
     db.close()
-    return jsonify([dict(r) for r in rows]), 200
+    return [dict(r) for r in rows]
 
 def update_user_status_handler(req, user_id):
-    data = req.get_json() or {}
+    data = req.get('body', {}) if isinstance(req, dict) else {}
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except:
+            data = {}
     new_status = data.get("status")
     if not new_status:
-        return jsonify({"success": False, "error": "Missing 'status' field."}), 400
-
+        return {"success": False, "error": "Missing 'status' field."}, 400
+    
     db = get_db()
     result = db.execute(
         "UPDATE users SET status = ? WHERE id = ? AND role != 'admin'",
@@ -45,50 +45,54 @@ def update_user_status_handler(req, user_id):
     rowcount = result.rowcount
     db.close()
     if rowcount == 0:
-        return jsonify({"success": False, "error": "User not found or protected."}), 404
-    return jsonify({"success": True}), 200
+        return {"success": False, "error": "User not found or protected."}, 404
+    return {"success": True}, 200
 
 def get_suggestions_handler(req):
     db = get_db()
-    rows = db.execute(
-        "SELECT id, username, text, reply, timestamp FROM suggestions ORDER BY id DESC"
-    ).fetchall()
+    rows = db.execute("SELECT id, username, text, reply, timestamp FROM suggestions ORDER BY id DESC").fetchall()
     db.close()
-    return jsonify([dict(r) for r in rows]), 200
+    return [dict(r) for r in rows]
 
 def reply_suggestion_handler(req, sug_id):
-    data = req.get_json() or {}
+    data = req.get('body', {}) if isinstance(req, dict) else {}
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except:
+            data = {}
     reply = data.get("reply", "").strip()
     if not reply:
-        return jsonify({"success": False, "error": "Reply cannot be empty."}), 400
-
+        return {"success": False, "error": "Reply cannot be empty."}, 400
+    
     db = get_db()
-    result = db.execute(
-        "UPDATE suggestions SET reply = ? WHERE id = ?", (reply, sug_id)
-    )
+    result = db.execute("UPDATE suggestions SET reply = ? WHERE id = ?", (reply, sug_id))
     db.commit()
     rowcount = result.rowcount
     db.close()
     if rowcount == 0:
-        return jsonify({"success": False, "error": "Suggestion not found."}), 404
-    return jsonify({"success": True}), 200
+        return {"success": False, "error": "Suggestion not found."}, 404
+    return {"success": True}, 200
 
 def get_announcements_handler(req):
     db = get_db()
-    rows = db.execute(
-        "SELECT message, created_at FROM announcements ORDER BY id DESC"
-    ).fetchall()
+    rows = db.execute("SELECT message, created_at FROM announcements ORDER BY id DESC").fetchall()
     db.close()
-    return jsonify([r["message"] for r in rows]), 200
+    return [r["message"] for r in rows]
 
 def post_announcement_handler(req):
-    data = req.get_json() or {}
+    data = req.get('body', {}) if isinstance(req, dict) else {}
+    if isinstance(data, str):
+        try:
+            data = json.loads(data)
+        except:
+            data = {}
     message = (data.get("message") or "").strip()
     if not message:
-        return jsonify({"success": False, "error": "Message cannot be empty."}), 400
-
+        return {"success": False, "error": "Message cannot be empty."}, 400
+    
     db = get_db()
     db.execute("INSERT INTO announcements (message) VALUES (?)", (message,))
     db.commit()
     db.close()
-    return jsonify({"success": True}), 201
+    return {"success": True}, 201
