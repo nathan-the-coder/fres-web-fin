@@ -14,7 +14,6 @@ if _env_file.exists():
         _line = _line.strip()
         if _line and not _line.startswith("#") and "=" in _line:
             _k, _, _v = _line.partition("=")
-            # FIX: Use direct assignment instead of setdefault to force overwrite
             os.environ[_k.strip()] = _v.strip()
 
 from db import init_db, get_db
@@ -98,7 +97,7 @@ class FRESHandler(BaseHTTPRequestHandler):
                     self.db.close()
                 return
 
-        # Serve static frontend files
+        # Serve static files
         if method == "GET":
             self._serve_static(path)
         else:
@@ -110,7 +109,6 @@ class FRESHandler(BaseHTTPRequestHandler):
 
     # ── Static File Server ───────────────────────────────────────────────────
     def _serve_static(self, path):
-        FRONTEND = Path(__file__).parent / "frontend"
         MIME = {
             ".html": "text/html", ".css": "text/css", ".js": "application/javascript",
             ".png": "image/png",  ".jpg": "image/jpeg", ".svg": "image/svg+xml",
@@ -121,7 +119,9 @@ class FRESHandler(BaseHTTPRequestHandler):
             path = "/index.html"
 
         relative_path = path.lstrip("/")
-        filepath = FRONTEND / relative_path
+        
+        # Try root directory first (for Vercel deployment)
+        filepath = Path(__file__).parent / relative_path
         if filepath.is_file():
             ext = filepath.suffix.lower()
             mime = MIME.get(ext, "application/octet-stream")
@@ -133,16 +133,12 @@ class FRESHandler(BaseHTTPRequestHandler):
             self.wfile.write(data)
             return
 
-        # Try the root assets folder if not found under frontend
-        ASSETS = Path(__file__).parent / "assets"
-        asset_path = ASSETS / relative_path
-        if relative_path.startswith("assets/"):
-            asset_path = ASSETS / relative_path[len("assets/"):]
-
-        if asset_path.is_file():
-            ext = asset_path.suffix.lower()
+        # Try frontend/ directory as fallback
+        frontend_path = Path(__file__).parent / "frontend" / relative_path
+        if frontend_path.is_file():
+            ext = frontend_path.suffix.lower()
             mime = MIME.get(ext, "application/octet-stream")
-            data = asset_path.read_bytes()
+            data = frontend_path.read_bytes()
             self.send_response(200)
             self.send_header("Content-Type", mime)
             self.send_header("Content-Length", len(data))
