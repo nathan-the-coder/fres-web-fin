@@ -1,5 +1,5 @@
 
-const API_BASE = "/api";
+const API_BASE = "https://fres-web-fin-six.vercel.app/api";
 
 /**
  * @param {string} endpoint
