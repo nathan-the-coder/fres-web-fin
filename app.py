@@ -13,7 +13,7 @@ if _env_file.exists():
             _k, _, _v = _line.partition("=")
             os.environ[_k.strip()] = _v.strip()
 
-app = Flask(__name__, static_folder='frontend', static_url_path='')
+app = Flask(__name__, static_folder='.', static_url_path='')
 
 init_db()
 
@@ -65,10 +65,10 @@ def get_logs():
 
 @app.route('/', defaults={'path': ''})
 @app.route('/<path:path>')
-def serve_frontend(path):
-    if path and os.path.exists(os.path.join('frontend', path)):
-        return send_from_directory('frontend', path)
-    return send_from_directory('frontend', 'index.html')
+def serve_static(path):
+    if path and os.path.exists(path):
+        return send_from_directory('.', path)
+    return send_from_directory('.', 'index.html')
 
 if __name__ == '__main__':
     app.run(host='127.0.0.1', port=int(os.environ.get('PORT', 5000)))
