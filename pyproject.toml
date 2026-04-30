@@ -1,7 +1,9 @@
 [project]
 name = "fres-web-fin"
 version = "2.0.0"
+description = "FRES Web Portal - Filipino Reviewer & Evaluation System"
 requires-python = ">=3.8"
 
 [tool.vercel]
-entrypoint = "api/index.py"
+build-command = "pip install -r requirements.txt"
+output-directory = "."
