@@ -7,15 +7,31 @@ FRES Admin Handler
 /api/admin/suggestions/<id>/reply
 /api/admin/announcements
 """
-import sqlite3
-from db import get_db
 import json
+from db import get_db
+
+def _parse_request(req):
+    """Parse request data from Flask request or plain dict."""
+    data = {}
+    try:
+        if hasattr(req, 'get_json'):
+            data = req.get_json(force=True)
+        elif isinstance(req, dict):
+            data = req.get('body', req)
+            if isinstance(data, str):
+                data = json.loads(data)
+        if not isinstance(data, dict):
+            data = {}
+    except Exception as e:
+        print(f"Parse error: {e}")
+        data = {}
+    return data
 
 def stats_handler(req):
     db = get_db()
     total_users = db.execute("SELECT COUNT(*) as n FROM users").fetchone()["n"]
-    total_sug   = db.execute("SELECT COUNT(*) as n FROM suggestions").fetchone()["n"]
-    total_gen   = db.execute("SELECT COUNT(*) as n FROM chat_logs").fetchone()["n"]
+    total_sug = db.execute("SELECT COUNT(*) as n FROM suggestions").fetchone()["n"]
+    total_gen = db.execute("SELECT COUNT(*) as n FROM chat_logs").fetchone()["n"]
     db.close()
     return {"total_users": total_users, "total_suggestions": total_sug, "total_generations": total_gen}
 
@@ -26,16 +42,11 @@ def get_users_handler(req):
     return [dict(r) for r in rows]
 
 def update_user_status_handler(req, user_id):
-    data = req.get('body', {}) if isinstance(req, dict) else {}
-    if isinstance(data, str):
-        try:
-            data = json.loads(data)
-        except:
-            data = {}
+    data = _parse_request(req)
     new_status = data.get("status")
     if not new_status:
         return {"success": False, "error": "Missing 'status' field."}, 400
-    
+
     db = get_db()
     result = db.execute(
         "UPDATE users SET status = ? WHERE id = ? AND role != 'admin'",
@@ -55,16 +66,11 @@ def get_suggestions_handler(req):
     return [dict(r) for r in rows]
 
 def reply_suggestion_handler(req, sug_id):
-    data = req.get('body', {}) if isinstance(req, dict) else {}
-    if isinstance(data, str):
-        try:
-            data = json.loads(data)
-        except:
-            data = {}
+    data = _parse_request(req)
     reply = data.get("reply", "").strip()
     if not reply:
         return {"success": False, "error": "Reply cannot be empty."}, 400
-    
+
     db = get_db()
     result = db.execute("UPDATE suggestions SET reply = ? WHERE id = ?", (reply, sug_id))
     db.commit()
@@ -81,16 +87,11 @@ def get_announcements_handler(req):
     return [r["message"] for r in rows]
 
 def post_announcement_handler(req):
-    data = req.get('body', {}) if isinstance(req, dict) else {}
-    if isinstance(data, str):
-        try:
-            data = json.loads(data)
-        except:
-            data = {}
+    data = _parse_request(req)
     message = (data.get("message") or "").strip()
     if not message:
         return {"success": False, "error": "Message cannot be empty."}, 400
-    
+
     db = get_db()
     db.execute("INSERT INTO announcements (message) VALUES (?)", (message,))
     db.commit()
@@ -98,12 +99,7 @@ def post_announcement_handler(req):
     return {"success": True}, 201
 
 def submit_suggestion_handler(req):
-    data = req.get('body', {}) if isinstance(req, dict) else {}
-    if isinstance(data, str):
-        try:
-            data = json.loads(data)
-        except:
-            data = {}
+    data = _parse_request(req)
     username = data.get('username', 'Anonymous').strip()
     text = data.get('text', '').strip()
     if not text:
