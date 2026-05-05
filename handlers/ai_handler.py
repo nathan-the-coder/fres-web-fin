@@ -24,12 +24,22 @@ def _build_prompt(lesson_text: str, mode: str, count: int) -> str:
         "identification": "Identification / Fill-in-the-blank",
     }.get(mode, "Multiple Choice (A B C D)")
 
+    if mode == "multipleChoice":
+        answer_format = "A or B or C or D"
+        answer_examples = "A\nB\nC\nD"
+    elif mode == "trueFalse":
+        answer_format = "True or False"
+        answer_examples = "True\nFalse\nTrue"
+    else:
+        answer_format = "keyword or phrase (the correct answer to the identification question)"
+        answer_examples = "photosynthesis\nmitochondria\ncell wall"
+
     return f"""You are an academic quiz generator for Filipino university students.
 Generate exactly {count} {mode_label} questions based ONLY on the text below.
 
-[LESSON TEXT START]
+[LESSION TEXT START]
 {lesson_text}
-[LESSON TEXT END]
+[LESSION TEXT END]
 
 OUTPUT FORMAT — follow this EXACTLY, no deviations:
 
@@ -44,8 +54,8 @@ D. [Option]
 ...
 
 ANSWERS:
-1. [Letter or True/False or keyword]
-2. [Letter or True/False or keyword]
+1. {answer_examples}
+2. {answer_examples}
 ...
 
 Rules:
@@ -55,6 +65,9 @@ Rules:
 - After all questions, write "ANSWERS:" then number each answer
 - Answers section must have exactly {count} entries matching question numbers
 - Do not add explanations or extra text
+- For Multiple Choice: answer must be exactly A, B, C, or D
+- For True/False: answer must be exactly True or False
+- For Identification: answer must be the keyword or phrase that answers the question
 """
 
 def _call_ai(prompt: str):
