@@ -24,62 +24,81 @@ def _build_prompt(lesson_text: str, mode: str, count: int) -> str:
         "identification": "Identification / Fill-in-the-blank",
     }.get(mode, "Multiple Choice (A B C D)")
 
+    example_section = ""
+    
     if mode == "multipleChoice":
-        answer_format = "A or B or C or D"
         answer_examples = "A\nB\nC\nD"
-    elif mode == "trueFalse":
-        answer_format = "True or False"
-        answer_examples = "True\nFalse\nTrue"
-    else:
-        answer_format = "keyword or phrase (the correct answer to the identification question)"
-        answer_examples = "photosynthesis\nmitochondria\ncell wall"
+        question_format = """1. [Question]
+A. [Option]
+B. [Option]
+C. [Option]
+D. [Option]
 
-    return f"""You are an academic quiz generator for Filipino university students.
+2. [Question]..."""
+        mode_instruction = "MODE: MULTIPLE CHOICE - Use A/B/C/D options with letter answers"
+    elif mode == "trueFalse":
+        answer_examples = "True\nFalse\nTrue"
+        question_format = """1. [Question]
+A. True
+B. False
+
+2. [Question]..."""
+        mode_instruction = "MODE: TRUE/FALSE - Use True/False options with True or False answers"
+    else:
+        answer_examples = "photosynthesis\nmitochondria\ncell wall"
+        question_format = "1. The powerhouse of the cell is ____.\n2. ATP is produced by _____."
+        mode_instruction = "MODE: IDENTIFICATION - Use fill-in-the-blank format with keyword/phrase answers. NO A/B/C/D OPTIONS!"
+        identification_example = "EXAMPLE FOR IDENTIFICATION:\nQUESTIONS:\n1. The powerhouse of the cell is ____.\n2. ATP is produced by ____.\n\nANSWERS:\n1. mitochondria\n2. ATP\n\nDO NOT use A/B/C/D options for identification!"
+        example_section = identification_example
+
+    return f"""{mode_instruction}
+
+You are an academic quiz generator for Filipino university students.
 Generate exactly {count} {mode_label} questions based ONLY on the text below.
 
 [LESSION TEXT START]
 {lesson_text}
 [LESSION TEXT END]
 
-OUTPUT FORMAT — follow this EXACTLY, no deviations:
+{example_section}
+
+OUTPUT FORMAT - follow this EXACTLY, no deviations:
 
 QUESTIONS:
-1. [Question]
-A. [Option]
-B. [Option]
-C. [Option]
-D. [Option]
-
-2. [Question]
-...
+{question_format}
 
 ANSWERS:
 1. {answer_examples}
 2. {answer_examples}
 ...
 
-Rules:
-- Start immediately with "QUESTIONS:" — no preamble
+IMPORTANT:
+- Identification mode: DO NOT include A/B/C/D options. Use fill-in-the-blank format with _____ 
+- Identification answers: must be keywords/phrases, NOT letters
+- Start immediately with "QUESTIONS:" - no preamble
 - Every question on its own numbered line
-- Choices on separate lines directly below each question
 - After all questions, write "ANSWERS:" then number each answer
 - Answers section must have exactly {count} entries matching question numbers
 - Do not add explanations or extra text
-- For Multiple Choice: answer must be exactly A, B, C, or D
-- For True/False: answer must be exactly True or False
-- For Identification: answer must be the keyword or phrase that answers the question
 """
 
 def _call_ai(prompt: str):
     try:
         client, model = _get_openrouter_client()
+        system_msg = (
+            "You are a strict quiz generator. Follow the user's format instructions EXACTLY. "
+            "If mode is IDENTIFICATION: do NOT use A/B/C/D options. Use fill-in-the-blank questions with _____ and answer with keywords/phrases. "
+            "If mode is MULTIPLE CHOICE: use A/B/C/D options and answer with letters A,B,C,D. "
+            "If mode is TRUE/FALSE: use True/False options and answer with True or False. "
+            "Do not deviate from the specified format."
+        )
         response = client.chat.completions.create(
             model=model,
             messages=[
-                {"role": "system", "content": "You are an academic quiz generator."},
+                {"role": "system", "content": system_msg},
                 {"role": "user", "content": prompt}
             ],
-            temperature=0.7,
+            temperature=0.3,
             max_tokens=4096,
         )
         if response.choices and len(response.choices) > 0:
@@ -89,7 +108,31 @@ def _call_ai(prompt: str):
         print(f"OpenRouter API error: {e}")
         return None
 
-def _parse_response(raw: str) -> dict:
+def _fix_identification_answers(questions: str, answers: str) -> str:
+    question_blocks = re.split(r'\n\s*\n', questions)
+    answer_lines = [line.strip() for line in answers.split('\n') if line.strip()]
+    
+    fixed = []
+    for i, ans_line in enumerate(answer_lines):
+        match = re.match(r'^\d+\.\s*([A-D])$', ans_line, re.IGNORECASE)
+        if match and i < len(question_blocks):
+            letter = match.group(1).upper()
+            block = question_blocks[i]
+            option_map = {}
+            for line in block.split('\n'):
+                opt_match = re.match(r'^([A-D])\.\s*(.+)$', line.strip())
+                if opt_match:
+                    option_map[opt_match.group(1)] = opt_match.group(2).strip()
+            if letter in option_map:
+                fixed.append(f"{i+1}. {option_map[letter]}")
+            else:
+                fixed.append(ans_line)
+        else:
+            fixed.append(ans_line)
+    
+    return '\n'.join(fixed) if fixed else answers
+
+def _parse_response(raw: str, mode: str = "multipleChoice") -> dict:
     raw = raw.strip()
     answers_split = re.split(r"\n\s*ANSWERS\s*:\s*\n", raw, flags=re.IGNORECASE, maxsplit=1)
 
@@ -98,16 +141,17 @@ def _parse_response(raw: str) -> dict:
         a_section = answers_split[1].strip()
     else:
         q_section = re.sub(r"^QUESTIONS\s*:\s*\n?", "", raw, flags=re.IGNORECASE).strip()
-        a_section = "(Answers not separated — please check questions section)"
+        a_section = "(Answers not separated - please check questions section)"
+
+    if mode == "identification":
+        a_section = _fix_identification_answers(q_section, a_section)
 
     return {"questions": q_section, "answers": a_section}
 
 def generate_handler(req):
-    # Parse request data - handle Flask request object
     data = {}
     try:
         if hasattr(req, 'get_json'):
-            # Flask request object
             data = req.get_json(force=True)
         elif isinstance(req, dict):
             data = req.get('body', req)
@@ -134,7 +178,7 @@ def generate_handler(req):
     if raw_result is None:
         return {"success": False, "error": "AI connection failed. Check API key or rate limits."}, 503
 
-    parsed = _parse_response(raw_result)
+    parsed = _parse_response(raw_result, mode)
 
     db = get_db()
     try:
