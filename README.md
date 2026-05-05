@@ -200,6 +200,16 @@ This project previously used:
 - **Vercel** → Migrated to Render.com (more reliable Flask deployment)
 - **`api/` serverless functions** → Unified Flask app (`server.py`)
 
+## 🔄 Recent Changes
+
+### May 2026
+- **AI Answer Format** — Quiz answers now format correctly based on question type:
+  - Multiple Choice: Answers are A, B, C, or D
+  - True/False: Answers are True or False
+  - Identification: Answers are keywords/phrases (not letters)
+- **Social Media Preview** — Added Open Graph and Twitter Card meta tags for better link previews when sharing on Facebook, Twitter, LinkedIn, etc.
+- **Deployment** — Migrated from Vercel to Render.com
+
 ## 📝 License
 
 Private project — FRES System (NwSSU CCIS)

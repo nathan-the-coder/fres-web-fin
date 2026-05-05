@@ -23,9 +23,9 @@ python server.py  # runs on http://127.0.0.1:5000
 
 ## Vercel Deployment
 
-- No `vercel.json` — Vercel auto-detects Python.
-- `.vercelignore` excludes `test_ai.py` and `SETUP_OPENROUTER.md`.
-- Database init after deploy: `vercel run python db.py`
+- Deploy to Render.com using the Python (Flask) preset.
+- Set environment variables in Render dashboard.
+- Database is auto-initialized on first deploy.
 
 ## Defaults
 
